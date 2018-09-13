@@ -40,7 +40,6 @@ class TestConfigurationView extends React.Component {
         };
         this.selectSpec = this.selectSpec.bind(this);
         this.isCompleted = this.isCompleted.bind(this);
-        this.buildTestPlan = this.buildTestPlan.bind(this);
     }
 
     componentDidMount() {
@@ -85,11 +84,21 @@ class TestConfigurationView extends React.Component {
         //return TestPlanReduxHelper.isTestPlanFilled(this.props.testvalues);
     }
 
-    buildTestPlan(){
-        let testPlan = TestPlanReduxHelper.buildTestPlanFromTestValues(this.props.testvalues);
-        client.postTestPlan(testPlan).then((response) => {
-            this.props.dispatch(addTestPlan(response.data.testId,testPlan,response.data.status));
-            this.props.history.push("/tests/running/"+response.data.testId);
+    buildTestPlan(runNow){
+        console.log(this.props.testvalues);
+        client.postTestPlan({
+            testPlan : TestPlanReduxHelper.buildTestPlanFromTestValues(this.props.testvalues),
+            runNow : runNow
+        }).then((response) => {
+            let testPlan = reponse.data.testPlan;
+            this.props.dispatch(addTestPlan(testPlan.id,testPlan));
+            if(runNow){
+                //TODO handle new testIteration
+                this.props.history.push("/tests/running/"+response.data.testId);
+            }else{
+                this.props.history.push("/");
+            }
+        }).finally(()=>{
             this.props.dispatch(clearTestValues());
             this.props.dispatch(clearSelectedSpecifications());
         });
@@ -116,8 +125,13 @@ class TestConfigurationView extends React.Component {
                     <div className={"text-center"}>
                         <Button bsStyle={"primary"} bsSize={"lg"}
                                 disabled={this.isCompleted()}
-                                onClick={this.buildTestPlan}
-                        >Continue</Button>
+                                onClick={()=>{this.buildTestPlan(false)}}
+                        >Save</Button>
+
+                        <Button bsStyle={"primary"} bsSize={"lg"}
+                                disabled={this.isCompleted()}
+                                onClick={()=>{this.buildTestPlan(true)}}
+                        >Save and Run Now</Button>
                     </div>
                 </Grid>
             </div>

@@ -10,6 +10,14 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${com.google.code.gson.version}</version>
+        </dependency>
+    </dependencies>
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.wso2.finance</groupId>

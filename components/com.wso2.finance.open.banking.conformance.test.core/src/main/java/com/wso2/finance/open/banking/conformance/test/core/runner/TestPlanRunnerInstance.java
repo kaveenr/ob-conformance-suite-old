@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.wso2.finance.open.banking.conformance.mgt.models.AttributeGroup;
 import com.wso2.finance.open.banking.conformance.mgt.testconfig.Feature;
 import com.wso2.finance.open.banking.conformance.mgt.testconfig.Specification;
+import com.wso2.finance.open.banking.conformance.mgt.testconfig.TestIteration;
 import com.wso2.finance.open.banking.conformance.mgt.testconfig.TestPlan;
 import com.wso2.finance.open.banking.conformance.test.core.Context;
 import com.wso2.finance.open.banking.conformance.test.core.testrunners.FeatureRunner;
@@ -37,10 +38,8 @@ public class TestPlanRunnerInstance extends Thread{
     private TestPlan testPlan;
     private BlockingQueue<TestPlanFeatureResult> resultQueue;
     private volatile Map<String,List<JsonObject>> formattedResult = new HashMap();
-    private volatile RUNNER_STATE status;
-    public enum RUNNER_STATE {
-        RUNNING, DONE, NOT_STARTED, WAITING
-    }
+    private volatile TestIteration.RUNNER_STATE status;
+
 
 
     public TestPlanRunnerInstance(TestPlan testPlan, BlockingQueue<TestPlanFeatureResult> resultQueue) {
@@ -48,7 +47,7 @@ public class TestPlanRunnerInstance extends Thread{
         Context.getInstance().init(testPlan);
         this.testPlan = testPlan;
         this.resultQueue = resultQueue;
-        this.status = RUNNER_STATE.NOT_STARTED;
+        this.status = TestIteration.RUNNER_STATE.NOT_STARTED;
         //Initialize Specs in Data Structure
         for(Specification spec : this.testPlan.getSpecifications()){
             this.formattedResult.put(spec.getName(), new ArrayList<>());
@@ -85,15 +84,14 @@ public class TestPlanRunnerInstance extends Thread{
     }
 
     public void run(){
-        this.status = RUNNER_STATE.RUNNING;
+        this.status = TestIteration.RUNNER_STATE.RUNNING;
         for(Specification specification : this.testPlan.getSpecifications()){
             this.processSpec(specification);
         }
-        this.status = RUNNER_STATE.DONE;
-        this.testPlan.setLastRun(new Date());
+        this.status = TestIteration.RUNNER_STATE.DONE;
     }
 
-    public RUNNER_STATE getStatus() {
+    public TestIteration.RUNNER_STATE getStatus() {
 
         return status;
     }
@@ -108,7 +106,7 @@ public class TestPlanRunnerInstance extends Thread{
         return testPlan;
     }
 
-    public void setStatus(RUNNER_STATE status) {
+    public void setStatus(TestIteration.RUNNER_STATE status) {
 
         this.status = status;
     }

@@ -19,6 +19,7 @@ package com.wso2.finance.open.banking.conformance.test.core.steps.v1_0_0;
 
 import com.wso2.finance.open.banking.conformance.mgt.models.Attribute;
 import com.wso2.finance.open.banking.conformance.mgt.models.AttributeGroup;
+import com.wso2.finance.open.banking.conformance.mgt.testconfig.TestIteration;
 import com.wso2.finance.open.banking.conformance.test.core.Context;
 import com.wso2.finance.open.banking.conformance.test.core.runner.TestPlanRunnerInstance;
 import com.wso2.finance.open.banking.conformance.test.core.utilities.Log;
@@ -62,7 +63,7 @@ public class OIDCSteps {
             }
             i++;
         }
-        Context.getInstance().getRunnerInstance().setStatus(TestPlanRunnerInstance.RUNNER_STATE.RUNNING);
+        Context.getInstance().getRunnerInstance().setStatus(TestIteration.RUNNER_STATE.RUNNING);
         oidcHandler.setAuthCode(authCode);
         Log.info(authCode);
     }
@@ -81,6 +82,6 @@ public class OIDCSteps {
         List<AttributeGroup> atrGrpList = new ArrayList();
         atrGrpList.add(atrGrp);
         Context.getInstance().getRunnerInstance().queueBrowserInteractionAttributes(atrGrp);
-        Context.getInstance().getRunnerInstance().setStatus(TestPlanRunnerInstance.RUNNER_STATE.WAITING);
+        Context.getInstance().getRunnerInstance().setStatus(TestIteration.RUNNER_STATE.WAITING);
     }
 }

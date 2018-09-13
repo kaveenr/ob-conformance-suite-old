@@ -16,27 +16,16 @@
  * under the License.
  */
 
-const initialState = {
-    testplans: {}
-};
+package com.wso2.finance.open.banking.conformance.api.dao;
 
+import com.wso2.finance.open.banking.conformance.mgt.testconfig.TestPlan;
 
-const testplans = (state = initialState, action) => {
-    switch (action.type) {
-        case 'ADD_TESTPLAN':
-            return {
-                testplans: {...state.testplans, [action.id] : {
-                        testId : action.id,
-                        testPlan : action.testplan,
-                    }
-                },
-            };
-        case 'CLEAR_TESTPLANS':
-            return initialState;
-        default:
-            return state
-    }
-};
+import java.util.List;
 
-export default testplans;
-
+public interface TestPlanDAO {
+    TestPlan addTestPlan(TestPlan testPlan);
+    void removeTestPlan(Integer id);
+    void updateTestPlan(TestPlan testPlan, Integer id);
+    TestPlan getTestPlan(Integer id);
+    List<TestPlan> getTestPlans();
+}

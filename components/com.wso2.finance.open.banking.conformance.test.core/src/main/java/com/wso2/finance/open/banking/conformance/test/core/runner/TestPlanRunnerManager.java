@@ -19,41 +19,38 @@
 package com.wso2.finance.open.banking.conformance.test.core.runner;
 
 import com.google.gson.JsonObject;
+import com.wso2.finance.open.banking.conformance.mgt.testconfig.TestIteration;
 import com.wso2.finance.open.banking.conformance.mgt.testconfig.TestPlan;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 public class TestPlanRunnerManager {
 
-    private Map<String,BlockingQueue<TestPlanFeatureResult>> resultQueueMap = new HashMap();
-    private Map<String,TestPlanRunnerInstance> runnerInstanceMap = new HashMap();
+    private Map<Integer,BlockingQueue<TestPlanFeatureResult>> resultQueueMap = new HashMap();
+    private Map<Integer,TestPlanRunnerInstance> runnerInstanceMap = new HashMap();
 
-    public String addPlan(TestPlan testPlan){
-        String uuid = UUID.randomUUID().toString();
-        this.resultQueueMap.put(uuid, new ArrayBlockingQueue(50));
-        this.runnerInstanceMap.put(uuid, new TestPlanRunnerInstance(testPlan,this.resultQueueMap.get(uuid)));
-        this.start(uuid);
-        return uuid;
+    public void addPlan(Integer testId, TestPlan testPlan){
+        this.resultQueueMap.put(testId, new ArrayBlockingQueue(50));
+        this.runnerInstanceMap.put(testId, new TestPlanRunnerInstance(testPlan,this.resultQueueMap.get(testId)));
     }
 
-    public List<TestPlanFeatureResult> getResults(String uuid){
-        if (this.runnerInstanceMap.containsKey(uuid)){
+    public List<TestPlanFeatureResult> getResults(Integer id){
+        if (this.runnerInstanceMap.containsKey(id)){
             List<TestPlanFeatureResult> results = new ArrayList();
-            this.resultQueueMap.get(uuid).drainTo(results);
+            this.resultQueueMap.get(id).drainTo(results);
             return results;
         }else{
             return null;
         }
     }
 
-    public TestPlanRunnerInstance.RUNNER_STATE getStatus(String uuid){
-        return this.runnerInstanceMap.get(uuid).getStatus();
+    public TestIteration.RUNNER_STATE getStatus(Integer id){
+        return this.runnerInstanceMap.get(id).getStatus();
     }
 
     public Map<String, List<JsonObject>> getResultSet(String uuid){
@@ -66,15 +63,9 @@ public class TestPlanRunnerManager {
         this.runnerInstanceMap.get(uuid).start();
     }
 
-    public Map<String, TestPlan> getAllTests() {
-        Map<String, TestPlan> results = new HashMap<>();
-        this.runnerInstanceMap.forEach((uuid, runnerInstance) -> results.put(uuid,runnerInstance.getTestPlan()));
-        return results;
-    }
-
     public void setContextAttribute(String key, String value){
         for(TestPlanRunnerInstance instance : this.runnerInstanceMap.values()){
-            if(instance.getStatus() == TestPlanRunnerInstance.RUNNER_STATE.WAITING){
+            if(instance.getStatus() == TestIteration.RUNNER_STATE.WAITING){
                 instance.setContextAttributes(key,value);
             }
         }

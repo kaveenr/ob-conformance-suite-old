@@ -34,16 +34,11 @@ class CommonDataLoader extends React.Component {
     }
 
     componentDidMount() {
-        axios.all([client.getSpecifications(), client.getTestPlans()]).then(
-            axios.spread((specs, plans) => {
+        axios.all([client.getSpecifications()]).then(
+            axios.spread((specs) => {
                 specs.data.forEach((spec) => {
                     this.props.dispatch(addSpecification(spec.name, spec));
                 });
-
-                var testplans = plans.data;
-                Object.keys(testplans).forEach((key) =>
-                    this.props.dispatch(addTestPlan(key, testplans[key].testPlan, testplans[key].status))
-                )
             })
         ).finally(() => {
             this.setState({

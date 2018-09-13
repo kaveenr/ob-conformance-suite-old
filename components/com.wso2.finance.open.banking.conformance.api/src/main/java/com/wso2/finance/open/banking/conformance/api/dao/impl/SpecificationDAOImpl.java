@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package com.wso2.finance.open.banking.conformance.api.dao;
+package com.wso2.finance.open.banking.conformance.api.dao.impl;
 
 import com.wso2.finance.open.banking.conformance.api.ApplicationDataHolder;
 import com.wso2.finance.open.banking.conformance.api.dto.BasicSpecificationDTO;
@@ -29,11 +29,11 @@ import java.util.stream.Collectors;
 /**
  * DTO for getting information on Specifications
  */
-public class SpecificationDAO {
+public class SpecificationDAOImpl {
 
     private Map<String, Specification> specifications = null;
 
-    public SpecificationDAO() {
+    public SpecificationDAOImpl() {
 
         this.specifications = ApplicationDataHolder.getInstance().getSpecifications();
     }

@@ -63,4 +63,8 @@ export default class TestPlanReduxHelper {
         }
     }
 
+    static buildReduxTestPlanFromTestPlan(testPlan){
+
+    }
+
 }
