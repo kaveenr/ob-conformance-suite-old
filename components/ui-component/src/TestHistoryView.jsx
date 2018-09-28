@@ -20,7 +20,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { withRouter, Link } from 'react-router-dom';
 import {
-Table, Row, Col, Button, Panel, ButtonToolbar
+    Table, Row, Col, Button, Panel, ButtonToolbar,
 } from 'react-bootstrap';
 import AppHeader from './partials/AppHeader';
 import RequestBuilder from './utils/RequestBuilder';
@@ -62,7 +62,9 @@ const TestPlanRow = ({ report }) => (
             <p>
                 <span>
                     Success Rate:
-                    {reportHelper.getTestSummary(report.result).rate} %
+                    {reportHelper.getTestSummary(report.result).rate}
+                    {' '}
+%
                 </span>
             </p>
         </td>
@@ -109,7 +111,7 @@ class TestPlanView extends React.Component {
                                     {this.props.plan.testPlan.name}
                                     <small>
                                         <p className='text-muted'>
-                                            <span className="history-view-inline-specs">
+                                            <span className='history-view-inline-specs'>
                                                 {Object.keys(this.props.plan.testPlan.specifications).map(key => (
                                                     <span key={this.props.specifications[key].title}>
                                                         {this.props.specifications[key].title}
@@ -154,7 +156,7 @@ class TestPlanView extends React.Component {
                                     <th className='tableHead'>Test Run Date</th>
                                     <th className='tableHead'>Status</th>
                                     <th className='tableHead'>Summary</th>
-                                    <th className='tableHead'></th>
+                                    <th className='tableHead' />
                                 </tr>
                             </thead>
                             <tbody className='text-center'>
