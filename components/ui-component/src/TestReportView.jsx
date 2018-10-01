@@ -45,7 +45,6 @@ const stepStatus = (steps) => {
     let errorStep;
     let errorDescription;
     let errorClass;
-    let faIconClass = '';
     const errorDisplayList = [];
 
     steps.forEach((step) => {
@@ -53,8 +52,6 @@ const stepStatus = (steps) => {
         errorClass = step.result.status;
         errorDescription = step.result.error_message;
         errorStep = (`${step.keyword} | ${step.name}`);
-        step.result.status === 'passed' ? faIconClass = '' : faIconClass = '';
-
         errorDisplayList.push(
             <ListGroupItem className={errorClass} key={step.name}>
                 { step.result.status !== 'failed'
@@ -265,7 +262,8 @@ class TestReportView extends React.Component {
      * @inheritdoc
      */
     componentDidMount() {
-        client.getResultsForTestPlan(this.state.uuid, this.state.revision).then((response) => {
+        const { uuid, revision } = this.state;
+        client.getResultsForTestPlan(uuid, revision).then((response) => {
             const report = response.data.report.result;
             const results = reportHelper.getTestSummary(report);
             this.setState({
@@ -277,21 +275,21 @@ class TestReportView extends React.Component {
                 featureCount: (reportHelper.getFeatureCount(response.data.testPlan)),
                 testName: response.data.testPlan.name,
                 newTest: (results.passed + results.failed) < (
-                    reportHelper.getFeatureCount(response.data.testPlan)), // to check if the report is for a finished test
+                    reportHelper.getFeatureCount(response.data.testPlan)), // finished test?
                 progress: ((results.passed + results.failed) / (
                     reportHelper.getFeatureCount(response.data.testPlan))) * 100,
             });
             /* Add Ids of loaded results to the state. */
-            const finishedFeatureIdSet = this.state.finishedFeatureIds;
+            const { finishedFeatureIds } = this.state;
             for (const api in response.data.report.result) {
                 if (Object.prototype.hasOwnProperty.call(response.data.report.result, api)) {
-                    finishedFeatureIdSet[api] = [];
+                    finishedFeatureIds[api] = [];
                     if (typeof (response.data.report.result[api][0]) !== 'undefined') {
                         response.data.report.result[api].forEach((feature) => {
-                            finishedFeatureIdSet[api].push(feature.id);
+                            finishedFeatureIds[api].push(feature.id);
                         });
                     }
-                    this.setState({ finishedFeatureIds: finishedFeatureIdSet });
+                    this.setState({ finishedFeatureIds });
                 }
             }
 
@@ -310,30 +308,39 @@ class TestReportView extends React.Component {
         clearInterval(this.interval);
     }
 
+    /**
+     * @returns {boolean} - Are results loading?
+     */
+    isLoading() {
+        const { loading } = this.state;
+        return loading;
+    }
 
     /**
      * Loads results to the report while polling
      */
     appendResults() {
-        client.pollResultsForTestPlan(this.state.uuid).then((pollResponse) => {
+        const { uuid } = this.state;
+        client.pollResultsForTestPlan(uuid).then((pollResponse) => {
             for (let i = 0, len = pollResponse.data.length; i < len; i++) {
                 const result = pollResponse.data[i];
                 /* Check for already loaded results and skip appending. */
-                if (Object.prototype.hasOwnProperty.call(this.state.finishedFeatureIds, result.specName)) {
-                    if (!(this.state.finishedFeatureIds[result.specName].includes(result.featureResult.id))) {
+                const { finishedFeatureIds } = this.state;
+                if (Object.prototype.hasOwnProperty.call(finishedFeatureIds, result.specName)) {
+                    if (!(finishedFeatureIds[result.specName].includes(result.featureResult.id))) {
                         this.setState({
                             showInteractionModel: false,
                         });
 
-                        let resultObject = this.state.data;
+                        let { data } = this.state; // result object
 
                         const featureResult = reportHelper.getFeatureResult(result.featureResult, reportHelper);
-                        resultObject = {
-                            ...resultObject,
-                            [result.specName]: [...resultObject[result.specName], result.featureResult],
+                        data = {
+                            ...data,
+                            [result.specName]: [...data[result.specName], result.featureResult],
                         };
                         this.setState(prevState => ({
-                            data: resultObject,
+                            data,
                             passed: prevState.passed
                                 + (featureResult.failed === 0), // all scenarios of feature passed
                             failed: prevState.failed
@@ -350,11 +357,15 @@ class TestReportView extends React.Component {
                         showInteractionModel: true,
                     });
                 }
+
+                const { revision } = this.state;
+                client.getResultsForTestPlan(uuid, revision).then((response) => {
+                    const { dispatch } = this.props;
+                    dispatch(updateReport(response.data.report));
+                });
+                
                 /* update state when the test is finished */
                 if (result.runnerState === 'DONE') {
-                    client.getResultsForTestPlan(this.state.uuid, this.state.revision).then((response) => {
-                        this.props.dispatch(updateReport(response.data.report));
-                    });
                     this.setState({
                         testRunning: false,
                     });
@@ -365,13 +376,14 @@ class TestReportView extends React.Component {
 
     /**
      * Renders main components of the report
+     * @param {object} state - state object
      * @returns {string} - HTML markup for the main components
      */
-    renderMain() {
+    renderMain(state) {
         return (
             <Grid>
                 <Modal 
-                    show={this.state.showInteractionModel} 
+                    show={state.showInteractionModel} 
                     onHide={() => {
                         this.setState({ showInteractionModel: false });
                     }} 
@@ -383,11 +395,11 @@ class TestReportView extends React.Component {
                         </Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        {this.state.attributes
+                        {state.attributes
                             ? (
                                 <AttributeGroup
-                                    group={this.state.attributes}
-                                    key={this.state.attributes.groupName}
+                                    group={state.attributes}
+                                    key={state.attributes.groupName}
                                 />
                             )
                             : []}
@@ -404,57 +416,57 @@ class TestReportView extends React.Component {
                 <Row className='stickeyHeader'>
                     <Col md={12}>
                         <div className='pull-right'>
-                            {!this.state.testRunning && this.state.failed === 0
+                            {!state.testRunning && state.failed === 0
                                 ? <Badge className='test-complete-badge'>Completed</Badge>
                                 : null
                             }
 
-                            {!this.state.testRunning && this.state.failed > 0
+                            {!state.testRunning && state.failed > 0
                                 ? <Badge className='test-complete-withfail-badge'>Completed</Badge>
                                 : null
                             }
 
-                            {this.state.testRunning
+                            {state.testRunning
                                 ? <LoaderComponent />
                                 : null
                             }
                         </div>
                         <div>
                             <h1 className='report-title'>
-                                {this.state.testName}
+                                {state.testName}
                                 {' '}
                                 <small>Report</small>
                             </h1>
                         </div>
 
                         <div className='overall-results-block report-block'>
-                            {this.state.passed > 0
+                            {state.passed > 0
                                 ? (
                                     <p>
                                         <span className='passed-summary'>Passed: </span>
-                                        {this.state.passed}
+                                        {state.passed}
                                     </p>
                                 )
                                 : null
                             }
 
-                            {this.state.failed > 0
+                            {state.failed > 0
                                 ? (
                                     <p>
                                         <span className='failed-summary'>Failed: </span>
-                                        {this.state.failed}
+                                        {state.failed}
                                     </p>
                                 )
                                 : null
                             }
-                            <div hidden={!this.state.newTest}>
-                                {this.state.progress !== 100
+                            <div hidden={!state.newTest}>
+                                {state.progress !== 100
                                     ? (
                                         <ProgressBar 
                                             className='pass-rate-progress' 
                                             active 
                                             striped
-                                            now={this.state.progress}
+                                            now={state.progress}
                                         />
                                     )
                                     : <ProgressBar className='pass-rate-progress fadeout' striped now={100} />
@@ -468,8 +480,8 @@ class TestReportView extends React.Component {
                     <Col md={12}>
                         <br />
                         <div>
-                            {Object.keys(this.state.data).map(
-                                key => <ReportAPI api={this.state.data[key]} key={key} apiName={key} />,
+                            {Object.keys(state.data).map(
+                                key => <ReportAPI api={state.data[key]} key={key} apiName={key} />,
                             )}
                         </div>
                     </Col>
@@ -487,7 +499,7 @@ class TestReportView extends React.Component {
             <div>
                 <AppHeader />
                 <br />
-                {this.state.loading ? <h1>Loading..</h1> : this.renderMain()}
+                {this.isLoading() ? <h1>Loading..</h1> : this.renderMain(this.state)}
             </div>
         );
     }
@@ -500,6 +512,7 @@ TestReportView.propTypes = {
         path: PropTypes.string.isRequired,
         url: PropTypes.string.isRequired,
     }).isRequired,
+    dispatch: PropTypes.func.isRequired,
 };
 
 export default connect()(TestReportView);
