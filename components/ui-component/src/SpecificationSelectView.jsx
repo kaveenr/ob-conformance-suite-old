@@ -1,3 +1,4 @@
+/* eslint-disable react/destructuring-assignment */
 /*
  * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -35,28 +36,33 @@ class SpecificationSelectView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.history = props.history;
-        this.dispatch = props.dispatch;
-        this.specifications = props.specifications;
-        this.testvalues = props.testvalues;
+        this.isSpecSelected = this.isSpecSelected.bind(this);
+        this.toggleSpec = this.toggleSpec.bind(this);
+        this.isEmptySelection = this.isEmptySelection.bind(this);
     }
 
     isSpecSelected(name) {
-        return (this.props.specifications.selected.includes(name));
+        const { specifications } = this.props;
+        return (specifications.selected.includes(name));
     }
 
     toggleSpec(specification) {
-        this.props.dispatch(toggleSpecification(specification.name));
+        const { dispatch } = this.props;
+        dispatch(toggleSpecification(specification.name));
     }
 
     isEmptySelection() {
-        return this.props.specifications.selected.length === 0 || this.props.testvalues.name.length === 0;
+        const { specifications } = this.props;
+        const { testvalues } = this.props;
+        return specifications.selected.length === 0 || testvalues.name.length === 0;
     }
 
     dismiss() {
-        this.props.history.push('/dashboard');
-        this.props.dispatch(clearTestValues());
-        this.props.dispatch(clearSelectedSpecifications());
+        const { history } = this.props;
+        const { dispatch } = this.props;
+        history.push('/dashboard');
+        dispatch(clearTestValues());
+        dispatch(clearSelectedSpecifications());
     }
 
     renderSpec(specification) {
@@ -80,7 +86,7 @@ class SpecificationSelectView extends React.Component {
             </ListGroupItem>);
     }
 
-    renderMain() {
+    renderMain(props) {
         return (
             <div className='test-configuration-view'>
                 <ul className='nav nav-wizard nav-justified nav-margin'>
@@ -110,14 +116,14 @@ class SpecificationSelectView extends React.Component {
                     <span className='input-group-addon span-custom'>Name of the Test Configuration</span>
                     <FormControl
                         type='text'
-                        value={this.props.testvalues.name}
-                        onChange={(e) => { this.props.dispatch(setTestName(e.target.value)); }}
+                        value={props.testvalues.name}
+                        onChange={(e) => { props.dispatch(setTestName(e.target.value)); }}
                     />
                 </div>
                 <br />
                 <ListGroup>
                     <ListGroupItem disabled><h4>APIs to be tested</h4></ListGroupItem>
-                    {Object.values(this.props.specifications.specs).map((spec) => {
+                    {Object.values(props.specifications.specs).map((spec) => {
                         return this.renderSpec(spec);
                     })}
                 </ListGroup>
@@ -152,7 +158,7 @@ class SpecificationSelectView extends React.Component {
                 <AppHeader />
                 {/* <AppBreadcrumbs/> */}
                 <div className='container'>
-                    {this.renderMain()}
+                    {this.renderMain(this.props)}
                 </div>
             </div>
         );
