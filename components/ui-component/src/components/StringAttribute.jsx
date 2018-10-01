@@ -53,10 +53,10 @@ class StringAttribute extends React.Component {
         return testStateValue || attribute.defaultValue;
     }
 
-    getValidationStatus(state) {
+    getValidationStatus() {
         const { attribute } = this.props;
         if (attribute.validationRegex) {
-            const isValid = state.value.match(RegExp(attribute.validationRegex));
+            const isValid = this.state.value.match(RegExp(attribute.validationRegex));
             return isValid ? null : 'error';
         } else {
             return null;
@@ -66,26 +66,24 @@ class StringAttribute extends React.Component {
     handleChange(e) {
         const { updateChange } = this.props;
         const { attribute } = this.props;
-        const { state } = this.state;
         this.setState({ value: e.target.value });
         updateChange(attribute.name,
-            (this.getValidationStatus(state) === 'success' ? this.state.value : null));
+            (this.getValidationStatus() === 'success' ? this.state.value : null));
     }
 
     render() {
         const { attribute } = this.props;
-        const { state } = this.state;
         return (
-            <FormGroup controlId={attribute.name} validationState={this.getValidationStatus(state)}>
+            <FormGroup controlId={attribute.name} validationState={this.getValidationStatus()}>
                 <ControlLabel>{attribute.label}</ControlLabel>
                 <FormControl
                     type='text'
-                    value={state.value}
+                    value={this.state.value}
                     placeholder='Enter text'
                     onChange={this.handleChange}
                 />
                 <FormControl.Feedback />
-                <div hidden={this.getValidationStatus(state) !== 'error'} className='text-warning'>
+                <div hidden={this.getValidationStatus() !== 'error'} className='text-warning'>
                     <HelpBlock>{attribute.helpText}</HelpBlock>
                 </div>
             </FormGroup>
@@ -98,7 +96,7 @@ StringAttribute.propTypes = {
     attribute: PropTypes.shape({
         name: PropTypes.string.isRequired,
         defaultValue: PropTypes.string.isRequired,
-        validationRegex: PropTypes.string.isRequired,
+        validationRegex: PropTypes.string,
         label: PropTypes.string.isRequired,
         helpText: PropTypes.string.isRequired,
     }).isRequired,

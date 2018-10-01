@@ -73,34 +73,35 @@ class AttributeGroup extends React.Component {
 
     getValue(attributeName) {
         const { scope } = this.props;
-        const { testvalueset } = this.props;
+        const { testvalues } = this.props;
         const { specName } = this.props;
         const { group } = this.props;
-        const { featureName } = this.props;
+        // const { featureName } = this.props;
         switch (scope) {
             case 'specification':
-                return testvalueset.specs[specName]
+                return testvalues.specs[specName]
                     .selectedValues.specification[group.groupName][attributeName];
             case 'feature':
-                return testvalueset.specs[specName]
-                    .selectedValues.features[featureName][group.groupName][attributeName];
+                return testvalues.specs[specName]
+                    .selectedValues.features[this.props.featureName][group.groupName][attributeName];
             default:
                 return null;
         }
     }
 
     updateChange(attributeName, value) {
+        console.log('featurename' + this.props.featureName);
         const { scope } = this.props;
         const { dispatch } = this.props;
         const { specName } = this.props;
         const { group } = this.props;
-        const { featureName } = this.props;
+        // const { featureName } = this.props;
         switch (scope) {
             case 'specification':
                 dispatch(setSpecValue(specName, group.groupName, attributeName, value));
                 return;
             case 'feature':
-                dispatch(setFeatureValue(specName, featureName, group.groupName, attributeName, value));
+                dispatch(setFeatureValue(specName, this.props.featureName, group.groupName, attributeName, value));
                 return;
             default:
                 console.log('Default');
@@ -143,17 +144,17 @@ class AttributeGroup extends React.Component {
 
 AttributeGroup.propTypes = {
     scope: PropTypes.string.isRequired,
-    testvalueset: PropTypes.shape({
+    testvalues: PropTypes.shape({
         specs: PropTypes.object.isRequired,
     }).isRequired,
     specName: PropTypes.string.isRequired,
     group: PropTypes.shape({
         groupName: PropTypes.string.isRequired,
         title: PropTypes.string.isRequired,
-        description: PropTypes.string.isRequired,
-        attributes: PropTypes.object.isRequired,
+        description: PropTypes.string,
+        attributes: PropTypes.array.isRequired,
     }).isRequired,
-    featureName: PropTypes.string.isRequired,
+    // featureName: PropTypes.string.isRequired,
     dispatch: PropTypes.func.isRequired,
 };
 
