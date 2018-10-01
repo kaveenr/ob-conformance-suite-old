@@ -76,8 +76,7 @@ export const Feature = connect(state => ({ testvalues: state.testvalues }))(({
                                             </tr>
                                         </thead>
                                         <tbody className='text-center'>
-                                            {feature.scenarios.map(scenario =>
-                                                <ScenariodataRow key={scenario.scenarioName} scenario={scenario} />)}
+                                            {feature.scenarios.map(scenario => <ScenariodataRow key={scenario.scenarioName} scenario={scenario} />)}
                                         </tbody>
                                     </Table>
                                 </Panel.Body>
@@ -154,14 +153,7 @@ export const SpecificationEditor = ({ spec }) => (
         <Panel>
             <Panel.Heading>Global Configuration</Panel.Heading>
             <Panel.Body id='attributeGroups'>
-                {spec.attributeGroups.map(group => (
-                    <AttributeGroup
-                        scope='specification'
-                        specName={spec.name}
-                        group={group}
-                        key={group.groupName}
-                    />
-                ))}
+                {spec.attributeGroups.map(group => <AttributeGroup scope='specification' specName={spec.name} group={group} key={group.groupName} />)}
             </Panel.Body>
         </Panel>
         <br />
