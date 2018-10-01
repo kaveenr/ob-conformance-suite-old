@@ -54,18 +54,16 @@ class CommonDataLoader extends React.Component {
 
 
     render() {
-        const { children } = this.props;
         if (this.state.loading) {
             return (<h1>Loading...</h1>);
         } else {
-            return (children);
+            return (this.props.children);
         }
     }
 }
 
 CommonDataLoader.propTypes = {
     dispatch: PropTypes.func.isRequired,
-    children: PropTypes.shape.isRequired,
 };
 
 export default connect()(CommonDataLoader);
