@@ -318,7 +318,6 @@ class TestReportView extends React.Component {
         client.pollResultsForTestPlan(this.state.uuid).then((pollResponse) => {
             for (let i = 0, len = pollResponse.data.length; i < len; i++) {
                 const result = pollResponse.data[i];
-
                 /* Check for already loaded results and skip appending. */
                 if (Object.prototype.hasOwnProperty.call(this.state.finishedFeatureIds, result.specName)) {
                     if (!(this.state.finishedFeatureIds[result.specName].includes(result.featureResult.id))) {
@@ -327,28 +326,29 @@ class TestReportView extends React.Component {
                         });
 
                         let resultObject = this.state.data;
-                        if (result.featureResult) {
-                            const featureResult = reportHelper.getFeatureResult(result.featureResult, reportHelper);
-                            resultObject = { 
-                                ...resultObject,
-                                [result.specName]: [...resultObject[result.specName], result.featureResult],
-                            };
-                            this.setState(prevState => ({
-                                data: resultObject,
-                                passed: prevState.passed 
-                                    + (featureResult.failed === 0), // all scenarios of feature passed
-                                failed: prevState.failed 
-                                    + (featureResult.failed > 0), // any scenario of feature failed
-                                completedFeatures: prevState.completedFeatures + 1,
-                                progress: ((prevState.completedFeatures + 1) / prevState.featureCount) * 100,
-                            }));
-                        } else if (result.attributeGroup) {
-                            this.setState({
-                                attributes: result.attributeGroup,
-                                showInteractionModel: true,
-                            });
-                        }
+
+                        const featureResult = reportHelper.getFeatureResult(result.featureResult, reportHelper);
+                        resultObject = {
+                            ...resultObject,
+                            [result.specName]: [...resultObject[result.specName], result.featureResult],
+                        };
+                        this.setState(prevState => ({
+                            data: resultObject,
+                            passed: prevState.passed
+                                + (featureResult.failed === 0), // all scenarios of feature passed
+                            failed: prevState.failed
+                                + (featureResult.failed > 0), // any scenario of feature failed
+                            completedFeatures: prevState.completedFeatures + 1,
+                            progress: ((prevState.completedFeatures + 1) / prevState.featureCount) * 100,
+                        }));
                     }
+                }
+                /* Show browser interaction modal if an arrtibute group is received */
+                if (result.attributeGroup) {
+                    this.setState({
+                        attributes: result.attributeGroup,
+                        showInteractionModel: true,
+                    });
                 }
                 /* update state when the test is finished */
                 if (result.runnerState === 'DONE') {
