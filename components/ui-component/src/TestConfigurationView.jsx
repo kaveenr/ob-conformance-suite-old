@@ -21,6 +21,7 @@ import { withRouter, Link } from 'react-router-dom';
 import {
     Grid, Row, Col, Button, ListGroup, Panel,
 } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import axios from 'axios';
 import { bootstrapUtils } from 'react-bootstrap/lib/utils';
@@ -48,6 +49,11 @@ class TestConfigurationView extends React.Component {
         this.isCompleted = this.isCompleted.bind(this);
         this.buildTestPlan = this.buildTestPlan.bind(this);
         this.saveTestPlan = this.saveTestPlan.bind(this);
+
+        this.history = props.history;
+        this.specifications = props.specifications;
+        this.testvalues = props.testvalues;
+        this.dispatch = props.dispatch;
     }
 
     componentDidMount() {
@@ -68,30 +74,6 @@ class TestConfigurationView extends React.Component {
         } else {
             this.props.history.push('/tests/new');
         }
-    }
-
-    renderEditor() {
-        return (
-            <SpecificationEditor
-                spec={TestPlanReduxHelper.getSpecFromState(this.props.specifications,
-                    this.state.selectedSpec)}
-            />
-        );
-    }
-
-    renderSpecs() {
-        return TestPlanReduxHelper.getSelectedSpecsFromState(this.props.specifications,
-            this.props.specifications.selected)
-            .map((spec) => {
-                return (
-                    <Specification
-                        selected={spec.name == this.state.selectedSpec}
-                        key={spec.name}
-                        spec={spec}
-                        selectElement={this.selectSpec}
-                    />
-                );
-            });
     }
 
     selectSpec(key) {
@@ -136,6 +118,30 @@ class TestConfigurationView extends React.Component {
     saveTestPlan() {
         const testConfiguration = TestPlanReduxHelper.buildTestPlanFromTestValues(this.props.testvalues);
         console.log(testConfiguration);
+    }
+
+    renderSpecs() {
+        return TestPlanReduxHelper.getSelectedSpecsFromState(this.props.specifications,
+            this.props.specifications.selected)
+            .map((spec) => {
+                return (
+                    <Specification
+                        selected={spec.name === this.state.selectedSpec}
+                        key={spec.name}
+                        spec={spec}
+                        selectElement={this.selectSpec}
+                    />
+                );
+            });
+    }
+
+    renderEditor() {
+        return (
+            <SpecificationEditor
+                spec={TestPlanReduxHelper.getSpecFromState(this.props.specifications,
+                    this.state.selectedSpec)}
+            />
+        );
     }
 
     renderMain() {
@@ -225,6 +231,18 @@ class TestConfigurationView extends React.Component {
         );
     }
 }
+
+TestConfigurationView.propTypes = {
+    history: PropTypes.shape({
+        push: PropTypes.func.isRequired,
+    }).isRequired,
+    specifications: PropTypes.shape({
+        selected: PropTypes.array.isRequired,
+    }).isRequired,
+    testvalues: PropTypes.shape(
+    ).isRequired,
+    dispatch: PropTypes.func.isRequired,
+};
 
 export default withRouter(connect(state => ({
     specifications: state.specifications,
