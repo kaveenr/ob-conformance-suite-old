@@ -20,173 +20,52 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { withRouter, Link } from 'react-router-dom';
 import {
-    Table, Row, Col, Button, Panel, ButtonToolbar,
+    Row, Col, Button,
 } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 import AppHeader from './partials/AppHeader';
 import RequestBuilder from './utils/RequestBuilder';
-import TestReportHelper from './utils/TestReportHelper';
 import '../public/css/report-style.scss';
 import { updateReport } from './actions';
+import TestPlanView from './components/TestPlanView';
 
 const client = new RequestBuilder();
-const reportHelper = new TestReportHelper();
 
-/*
- * Row of the test plan table
+/**
+ * ClassName: TestHistoryView
+ *
+ * Responsible for displaying the structure of
+ * test history view
+ *
  */
-const TestPlanRow = ({ report }) => (
-    <tr align='left'>
-        <td>{report.executed}</td>
-        <td>{report.state}</td>
-        <td className='overall-results-block'>
-            <p>
-                <span style={{ color: 'green' }}>
-                    <i className='fas fa-check-circle' />
-                    {' '}
-                    Passed :
-                    {reportHelper.getTestSummary(report.result).passed}
-                </span>
-            </p>
-            {reportHelper.getTestSummary(report.result).failed > 0 ? (
-                <p>
-                    <span style={{ color: 'red' }}>
-                        <i className='fas fa-times-circle' />
-                        {' '}
-                        Failed :
-                        {reportHelper.getTestSummary(report.result).failed}
-                    </span>
-                </p>
-            )
-                : null
-            }
-            <p>
-                <span>
-                    Success Rate:
-                    {reportHelper.getTestSummary(report.result).rate}
-                    {' '}
-%
-                </span>
-            </p>
-        </td>
-        <td>
-            <Link to={
-                {
-                    pathname: '/tests/report/' + report.testId + '/' + report.reportId,
-                    state: { fromDashboard: true },
-                }
-            }
-            >
-            Check Report
-            </Link>
-        </td>
-    </tr>
-);
-
-/*
- * Test plan panel
- */
-class TestPlanView extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            open: false,
-        };
-    }
-
-    /*
-     *Funtion fires when panel toggles
-     */
-    togglePlan() {
-        console.log('Toggled');
-    }
-
-    render() {
-        return (
-            <Panel defaultExpanded={false} expanded={this.state.open} onToggle={() => this.togglePlan()}>
-                <Panel.Heading>
-                    <Panel.Title>
-                        <Row className='history-view-row'>
-                            <Col xs={6}>
-                                <div>
-                                    {this.props.plan.testPlan.name}
-                                    <small>
-                                        <p className='text-muted'>
-                                            <span className='history-view-inline-specs'>
-                                                {Object.keys(this.props.plan.testPlan.specifications).map(key => (
-                                                    <span key={this.props.specifications[key].title}>
-                                                        {this.props.specifications[key].title}
-                                                        {this.props.specifications[key].version}
-                                                    </span>
-                                                ))}
-                                            </span>
-                                        </p>
-                                    </small>
-                                </div>
-                            </Col>
-                            <Col xs={5}>
-                                <ButtonToolbar className='pull-right'>
-                                    <Button
-                                        onClick={() => { this.props.runTest(this.props.plan); }}
-                                        className='round-btn'
-                                    >
-                                        <i className='fas fa-lg fa-play' />
-                                    </Button>
-                                    <Button className='round-btn'>
-                                        <i className='fas fa-lg fa-cog' />
-                                    </Button>
-                                    <Button className='round-btn'>
-                                        <i className='fas fa-lg fa-trash' />
-                                    </Button>
-                                </ButtonToolbar>
-                            </Col>
-                            <Col xs={1}>
-                                <Button className='round-btn' onClick={() => this.setState({ open: !this.state.open })}>
-                                    <i className={'fas fa-lg fa-' + (this.state.open ? 'angle-up' : 'angle-down')} />
-                                </Button>
-                            </Col>
-                        </Row>
-                    </Panel.Title>
-                </Panel.Heading>
-                <Panel.Collapse>
-                    <Panel.Body collapsible>
-                        <b>Test Iterations</b>
-                        <Table className='test-history-table' striped bordered condensed hover>
-                            <thead>
-                                <tr>
-                                    <th className='tableHead'>Test Run Date</th>
-                                    <th className='tableHead'>Status</th>
-                                    <th className='tableHead'>Summary</th>
-                                    <th className='tableHead' />
-                                </tr>
-                            </thead>
-                            <tbody className='text-center'>
-                                {Object.values(this.props.plan.reports).map(report => <TestPlanRow key={report.reportId} report={report} />)}
-                            </tbody>
-                        </Table>
-                    </Panel.Body>
-                </Panel.Collapse>
-            </Panel>
-        );
-    }
-}
-
 class TestHistoryView extends React.Component {
+    /**
+     *
+     * @param {*} props - Class props
+     */
     constructor(props) {
         super(props);
         this.runTest = this.runTest.bind(this);
     }
 
-    /*
+    /**
      *Function to run the test plan
+     * @param {object} testPlan - testPlan
      */
     runTest(testPlan) {
+        const { dispatch, history } = this.props;
         client.runTestPlan(testPlan).then((response) => {
-            this.props.dispatch(updateReport(response.data));
-            this.props.history.push('/tests/report/' + response.data.testId + '/' + response.data.reportId);
+            dispatch(updateReport(response.data));
+            history.push('/tests/report/' + response.data.testId + '/' + response.data.reportId);
         });
     }
 
+    /**
+     *
+     * @returns {string} - HTML markup for the TestHistoryView
+     */
     render() {
+        const { testplans, specifications } = this.props;
         return (
             <div>
                 <AppHeader />
@@ -210,9 +89,17 @@ class TestHistoryView extends React.Component {
                         </Row>
                     </div>
                     <div className='testplan-wrapper'>
-                        {Object.values(this.props.testplans).map(plan => <TestPlanView plan={plan} key={plan.testId} specifications={this.props.specifications} runTest={this.runTest} />)}
+                        {Object.values(testplans).map(
+                            plan => (
+                                <TestPlanView
+                                    plan={plan}
+                                    key={plan.testId}
+                                    specifications={specifications}
+                                    runTest={this.runTest}
+                                />),
+                        )}
                     </div>
-                    <div className='testplan-wrapper' hidden={Object.values(this.props.testplans).length !== 0}>
+                    <div className='testplan-wrapper' hidden={Object.values(testplans).length !== 0}>
                         <div className='well text-center text-muted'>
                             <h3>No Test Plans Added Yet</h3>
                         </div>
@@ -223,6 +110,12 @@ class TestHistoryView extends React.Component {
     }
 }
 
+TestHistoryView.propTypes = {
+    testplans: PropTypes.shape().isRequired,
+    dispatch: PropTypes.func.isRequired,
+    history: PropTypes.shape().isRequired,
+    specifications: PropTypes.shape().isRequired,
+};
 
 export default withRouter(connect(state => ({
     specifications: state.specifications.specs, testplans: state.testplans.testplans,
