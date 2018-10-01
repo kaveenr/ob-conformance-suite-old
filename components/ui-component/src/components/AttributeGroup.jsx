@@ -18,75 +18,15 @@
 
 import React from 'react';
 import {
-    FormGroup, ControlLabel, FormControl, HelpBlock, Button,
+    Button,
 } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { bootstrapUtils } from 'react-bootstrap/lib/utils';
+import PropTypes from 'prop-types';
 import { setSpecValue, setFeatureValue } from '../actions';
+import StringAttribute from './StringAttribute';
 
 bootstrapUtils.addStyle(Button, 'secondary');
-
-
-export class StringAttribute extends React.Component {
-    constructor(props) {
-        super(props);
-
-        const defaultValue = this.getDefaultValue();
-        this.state = {
-            value: defaultValue || '',
-        };
-
-        this.handleChange = this.handleChange.bind(this);
-        this.getValidationStatus = this.getValidationStatus.bind(this);
-    }
-
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if (prevProps.specName !== this.props.specName) {
-            const defaultValue = this.getDefaultValue();
-            this.setState({
-                value: defaultValue || '',
-            });
-        }
-    }
-
-    getDefaultValue() {
-        const testStateValue = this.props.getValue(this.props.attribute.name);
-        return testStateValue || this.props.attribute.defaultValue;
-    }
-
-    getValidationStatus() {
-        if (this.props.attribute.validationRegex) {
-            const isValid = this.state.value.match(RegExp(this.props.attribute.validationRegex));
-            return isValid ? null : 'error';
-        } else {
-            return null;
-        }
-    }
-
-    handleChange(e) {
-        this.setState({ value: e.target.value });
-        this.props.updateChange(this.props.attribute.name,
-            (this.getValidationStatus() == 'success' ? this.state.value : null));
-    }
-
-    render() {
-        return (
-            <FormGroup controlId={this.props.attribute.name} validationState={this.getValidationStatus()}>
-                <ControlLabel>{this.props.attribute.label}</ControlLabel>
-                <FormControl
-                    type='text'
-                    value={this.state.value}
-                    placeholder='Enter text'
-                    onChange={this.handleChange}
-                />
-                <FormControl.Feedback />
-                <div hidden={this.getValidationStatus() !== 'error'} className='text-warning'>
-                    <HelpBlock>{this.props.attribute.helpText}</HelpBlock>
-                </div>
-            </FormGroup>
-        );
-    }
-}
 
 const TextLabelAttribute = ({ attribute }) => (
     <div>
@@ -103,6 +43,10 @@ const TextLabelAttribute = ({ attribute }) => (
     </div>
 );
 
+TextLabelAttribute.propTypes = {
+    attribute: PropTypes.shape.isRequired,
+};
+
 const LinkButtonAttribute = ({ attribute }) => (
     <div>
         <Button
@@ -116,6 +60,10 @@ const LinkButtonAttribute = ({ attribute }) => (
     </div>
 );
 
+LinkButtonAttribute.propTypes = {
+    attribute: PropTypes.shape.isRequired,
+};
+
 class AttributeGroup extends React.Component {
     constructor(props) {
         super(props);
@@ -123,53 +71,91 @@ class AttributeGroup extends React.Component {
         this.getValue = this.getValue.bind(this);
     }
 
-    updateChange(attributeName, value) {
-        switch (this.props.scope) {
-            case 'specification':
-                this.props.dispatch(setSpecValue(this.props.specName, this.props.group.groupName,
-                    attributeName, value));
-                return;
-            case 'feature':
-                this.props.dispatch(setFeatureValue(this.props.specName, this.props.featureName,
-                    this.props.group.groupName, attributeName, value));
-        }
-    }
-
     getValue(attributeName) {
-        switch (this.props.scope) {
+        const { scope } = this.props;
+        const { testvalueset } = this.props;
+        const { specName } = this.props;
+        const { group } = this.props;
+        const { featureName } = this.props;
+        switch (scope) {
             case 'specification':
-                return this.props.testvalues.specs[this.props.specName].selectedValues.specification[this.props.group.groupName][attributeName];
+                return testvalueset.specs[specName]
+                    .selectedValues.specification[group.groupName][attributeName];
             case 'feature':
-                return this.props.testvalues.specs[this.props.specName].selectedValues.features[this.props.featureName][this.props.group.groupName][attributeName];
+                return testvalueset.specs[specName]
+                    .selectedValues.features[featureName][group.groupName][attributeName];
             default:
                 return null;
         }
     }
 
-    renderAttribute(attribute){
-        switch (attribute.attributeType){
-            case "String":
-                return <StringAttribute attribute={attribute} key={attribute.name} updateChange={this.updateChange} 
-                    getValue={this.getValue} specName={this.props.specName}/>;
-            case "TextLabel":
-                return <TextLabelAttribute attribute={attribute} key={attribute.name}/>;
-            case "LinkButton":
-                return <LinkButtonAttribute attribute={attribute} key={attribute.name}/>;
+    updateChange(attributeName, value) {
+        const { scope } = this.props;
+        const { dispatch } = this.props;
+        const { specName } = this.props;
+        const { group } = this.props;
+        const { featureName } = this.props;
+        switch (scope) {
+            case 'specification':
+                dispatch(setSpecValue(specName, group.groupName, attributeName, value));
+                return;
+            case 'feature':
+                dispatch(setFeatureValue(specName, featureName, group.groupName, attributeName, value));
+                return;
+            default:
+                console.log('Default');
+        }
+    }
+
+    renderAttribute(attribute) {
+        const { specName } = this.props;
+        switch (attribute.attributeType) {
+            case 'String':
+                return (
+                    <StringAttribute
+                        attribute={attribute}
+                        key={attribute.name}
+                        updateChange={this.updateChange}
+                        getValue={this.getValue}
+                        specName={specName}
+                    />
+                );
+            case 'TextLabel':
+                return <TextLabelAttribute attribute={attribute} key={attribute.name} />;
+            case 'LinkButton':
+                return <LinkButtonAttribute attribute={attribute} key={attribute.name} />;
             default:
                 return <p>Not A Valid Field Type</p>;
         }
     }
 
     render() {
+        const { group } = this.props;
         return (
             <div className='attribute-group'>
-                <h4 className='sub-heading'>{this.props.group.title}</h4>
-                {this.props.group.description ? <p>{this.props.group.description}</p> : []}
-                {this.props.group.attributes.map(attribute => this.renderAttribute(attribute))}
+                <h4 className='sub-heading'>{group.title}</h4>
+                {group.description ? <p>{group.description}</p> : []}
+                {group.attributes.map(attribute => this.renderAttribute(attribute))}
             </div>
         );
     }
 }
+
+AttributeGroup.propTypes = {
+    scope: PropTypes.string.isRequired,
+    testvalueset: PropTypes.shape({
+        specs: PropTypes.object.isRequired,
+    }).isRequired,
+    specName: PropTypes.string.isRequired,
+    group: PropTypes.shape({
+        groupName: PropTypes.string.isRequired,
+        title: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
+        attributes: PropTypes.object.isRequired,
+    }).isRequired,
+    featureName: PropTypes.string.isRequired,
+    dispatch: PropTypes.func.isRequired,
+};
 
 export default connect(state => ({
     testvalues: state.testvalues,
