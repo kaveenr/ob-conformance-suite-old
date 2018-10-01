@@ -1,3 +1,4 @@
+/* eslint-disable react/destructuring-assignment */
 /*
  * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -49,30 +50,28 @@ class TestConfigurationView extends React.Component {
         this.isCompleted = this.isCompleted.bind(this);
         this.buildTestPlan = this.buildTestPlan.bind(this);
         this.saveTestPlan = this.saveTestPlan.bind(this);
-
-        this.history = props.history;
-        this.specifications = props.specifications;
-        this.testvalues = props.testvalues;
-        this.dispatch = props.dispatch;
     }
 
     componentDidMount() {
-        if (this.props.specifications.selected.length !== 0) {
-            axios.all(this.props.specifications.selected.map(key => client.getSingleSpecification(key))).then(
+        const { specifications } = this.props;
+        const { dispatch } = this.props;
+        const { history } = this.props;
+        if (specifications.selected.length !== 0) {
+            axios.all(specifications.selected.map(key => client.getSingleSpecification(key))).then(
                 axios.spread((...specs) => {
                     specs.forEach((spec) => {
-                        this.props.dispatch(updateSpecification(spec.data.name, spec.data));
-                        this.props.dispatch(addSpecificationToTestValues(spec.data));
+                        dispatch(updateSpecification(spec.data.name, spec.data));
+                        dispatch(addSpecificationToTestValues(spec.data));
                     });
                 }),
             ).finally(() => {
                 this.setState({
                     loading: false,
-                    selectedSpec: this.props.specifications.selected[0],
+                    selectedSpec: specifications.selected[0],
                 });
             });
         } else {
-            this.props.history.push('/tests/new');
+            history.push('/tests/new');
         }
     }
 
@@ -87,46 +86,52 @@ class TestConfigurationView extends React.Component {
     }
 
     buildTestPlan(runNow) {
-        const testPlan = TestPlanReduxHelper.buildTestPlanFromTestValues(this.props.testvalues);
+        const { testvalues } = this.props;
+        const testPlan = TestPlanReduxHelper.buildTestPlanFromTestValues(testvalues);
+        const { dispatch } = this.props;
+        const { history } = this.props;
         client.postTestPlan({
             testPlan,
             runNow,
         }).then((response) => {
             const reports = runNow ? [response.data.report] : [];
-            this.props.dispatch(addTestPlan(response.data.testId, testPlan, reports));
+            dispatch(addTestPlan(response.data.testId, testPlan, reports));
             if (runNow) {
-                this.props.history.push({
+                history.push({
                     pathname: '/tests/report/' + response.data.testId + '/' + response.data.report.reportId,
                     state: { fromDashboard: false },
                 });
-                this.props.dispatch(updateReport(response.data.report));
+                dispatch(updateReport(response.data.report));
             } else {
-                this.props.history.push('/dashboard');
+                history.push('/dashboard');
             }
         }).finally(() => {
-            this.props.dispatch(clearTestValues());
-            this.props.dispatch(clearSelectedSpecifications());
+            dispatch(clearTestValues());
+            dispatch(clearSelectedSpecifications());
         });
     }
 
     dismiss() {
-        this.props.history.push('/dashboard');
-        this.props.dispatch(clearTestValues());
-        this.props.dispatch(clearSelectedSpecifications());
+        const { history } = this.props;
+        history.push('/dashboard');
+        const { dispatch } = this.props;
+        dispatch(clearTestValues());
+        dispatch(clearSelectedSpecifications());
     }
 
     saveTestPlan() {
-        const testConfiguration = TestPlanReduxHelper.buildTestPlanFromTestValues(this.props.testvalues);
+        const { testvalues } = this.props;
+        const testConfiguration = TestPlanReduxHelper.buildTestPlanFromTestValues(testvalues);
         console.log(testConfiguration);
     }
 
-    renderSpecs() {
-        return TestPlanReduxHelper.getSelectedSpecsFromState(this.props.specifications,
-            this.props.specifications.selected)
+    renderSpecs(state) {
+        const { specifications } = this.props;
+        return TestPlanReduxHelper.getSelectedSpecsFromState(specifications, specifications.selected)
             .map((spec) => {
                 return (
                     <Specification
-                        selected={spec.name === this.state.selectedSpec}
+                        selected={spec.name === state.selectedSpec}
                         key={spec.name}
                         spec={spec}
                         selectElement={this.selectSpec}
@@ -135,16 +140,16 @@ class TestConfigurationView extends React.Component {
             });
     }
 
-    renderEditor() {
+    renderEditor(state) {
+        const { specifications } = this.props;
         return (
             <SpecificationEditor
-                spec={TestPlanReduxHelper.getSpecFromState(this.props.specifications,
-                    this.state.selectedSpec)}
+                spec={TestPlanReduxHelper.getSpecFromState(specifications, state.selectedSpec)}
             />
         );
     }
 
-    renderMain() {
+    renderMain(state) {
         return (
             <div>
                 <br />
@@ -178,12 +183,12 @@ class TestConfigurationView extends React.Component {
                             <Panel>
                                 <Panel.Heading>Selected API Specifications</Panel.Heading>
                                 <ListGroup>
-                                    {this.renderSpecs()}
+                                    {this.renderSpecs(state)}
                                 </ListGroup>
                             </Panel>
                         </Col>
                         <Col md={8}>
-                            {this.state.selectedSpec ? this.renderEditor() : null}
+                            {state.selectedSpec ? this.renderEditor(state) : null}
                             <br />
                             <div>
                                 <Button
@@ -225,7 +230,7 @@ class TestConfigurationView extends React.Component {
                 <AppHeader />
                 {/* <AppBreadcrumbs/> */}
                 <div className='container'>
-                    {this.state.loading ? <h1>Loading</h1> : this.renderMain()}
+                    {this.state.loading ? <h1>Loading</h1> : this.renderMain(this.state)}
                 </div>
             </div>
         );
