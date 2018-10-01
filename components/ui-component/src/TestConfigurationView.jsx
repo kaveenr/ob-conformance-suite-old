@@ -39,7 +39,18 @@ bootstrapUtils.addStyle(Button, 'secondary');
 
 const client = new RequestBuilder();
 
+/**
+ * ClassName: TestConfigurationView
+ *
+ * Responsible for displaying Test Configuration details of the
+ * selected APIs
+ *
+ */
 class TestConfigurationView extends React.Component {
+    /**
+     *
+     * @param {*} props - Class props
+     */
     constructor(props) {
         super(props);
         this.state = {
@@ -75,16 +86,27 @@ class TestConfigurationView extends React.Component {
         }
     }
 
+    /**
+     *Function to get the selected spec
+     * @param {string} key - key
+     */
     selectSpec(key) {
         this.setState({
             selectedSpec: key,
         });
     }
 
+    /**
+     *Function to test whether the test plan is completed
+     */
     isCompleted() {
         // return TestPlanReduxHelper.isTestPlanFilled(this.props.testvalues);
     }
 
+    /**
+     *Function to build the test plan
+     * @param {boolean} runNow - runNow
+     */
     buildTestPlan(runNow) {
         const { testvalues } = this.props;
         const testPlan = TestPlanReduxHelper.buildTestPlanFromTestValues(testvalues);
@@ -119,12 +141,19 @@ class TestConfigurationView extends React.Component {
         dispatch(clearSelectedSpecifications());
     }
 
+    /**
+     *Function to save the test plan
+     */
     saveTestPlan() {
         const { testvalues } = this.props;
         const testConfiguration = TestPlanReduxHelper.buildTestPlanFromTestValues(testvalues);
         console.log(testConfiguration);
     }
 
+    /**
+     *
+     * @returns {string} - HTML markup for list of APIs selected
+     */
     renderSpecs(state) {
         const { specifications } = this.props;
         return TestPlanReduxHelper.getSelectedSpecsFromState(specifications, specifications.selected)
@@ -140,6 +169,10 @@ class TestConfigurationView extends React.Component {
             });
     }
 
+    /**
+     *
+     * @returns {string} - HTML markup for details of the Specification selected
+     */
     renderEditor(state) {
         const { specifications } = this.props;
         return (
@@ -149,6 +182,10 @@ class TestConfigurationView extends React.Component {
         );
     }
 
+    /**
+     *
+     * @returns {string} - HTML markup for Configration Details of the TestConfigurationView
+     */
     renderMain(state) {
         return (
             <div>
@@ -224,6 +261,10 @@ class TestConfigurationView extends React.Component {
         );
     }
 
+    /**
+     *
+     * @returns {string} - HTML markup for the TestConfigurationView
+     */
     render() {
         return (
             <div>
