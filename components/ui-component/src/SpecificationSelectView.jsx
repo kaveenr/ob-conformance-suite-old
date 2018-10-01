@@ -20,6 +20,7 @@ import React from 'react';
 import {
     ListGroup, ListGroupItem, Button, FormControl,
 } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import {
@@ -33,6 +34,11 @@ import AppHeader from './partials/AppHeader';
 class SpecificationSelectView extends React.Component {
     constructor(props) {
         super(props);
+
+        this.history = props.history;
+        this.dispatch = props.dispatch;
+        this.specifications = props.specifications;
+        this.testvalues = props.testvalues;
     }
 
     isSpecSelected(name) {
@@ -152,6 +158,20 @@ class SpecificationSelectView extends React.Component {
         );
     }
 }
+
+SpecificationSelectView.propTypes = {
+    history: PropTypes.shape({
+        push: PropTypes.func.isRequired,
+    }).isRequired,
+    specifications: PropTypes.shape({
+        selected: PropTypes.array.isRequired,
+        specs: PropTypes.object.isRequired,
+    }).isRequired,
+    testvalues: PropTypes.shape({
+        name: PropTypes.string.isRequired,
+    }).isRequired,
+    dispatch: PropTypes.func.isRequired,
+};
 
 export default connect(state => (
     { specifications: state.specifications, testvalues: state.testvalues }
