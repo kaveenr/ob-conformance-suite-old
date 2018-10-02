@@ -32,7 +32,17 @@ import {
 } from './actions';
 import AppHeader from './partials/AppHeader';
 
+/**
+ * ClassName: SpecificationSelectView
+ *
+ * Responsible for displaying APIs that can be tested through the system
+ *
+ */
 class SpecificationSelectView extends React.Component {
+    /**
+     *
+     * @param {*} props - Class props
+     */
     constructor(props) {
         super(props);
 
@@ -41,16 +51,27 @@ class SpecificationSelectView extends React.Component {
         this.isEmptySelection = this.isEmptySelection.bind(this);
     }
 
+    /**
+     *Function to check whether the spec is selected
+     * @param {string} name - name
+     */
     isSpecSelected(name) {
         const { specifications } = this.props;
         return (specifications.selected.includes(name));
     }
 
+    /**
+     *Function to toggle the specification
+     * @param {string} specification - specification
+     */
     toggleSpec(specification) {
         const { dispatch } = this.props;
         dispatch(toggleSpecification(specification.name));
     }
 
+    /**
+     *Function to check whether none of the APis are selected
+     */
     isEmptySelection() {
         const { specifications } = this.props;
         const { testvalues } = this.props;
@@ -65,6 +86,10 @@ class SpecificationSelectView extends React.Component {
         dispatch(clearSelectedSpecifications());
     }
 
+    /**
+     *
+     * @returns {string} - HTML markup for list the available APis
+     */
     renderSpec(specification) {
         return (
             <ListGroupItem
@@ -86,6 +111,10 @@ class SpecificationSelectView extends React.Component {
             </ListGroupItem>);
     }
 
+    /**
+     *
+     * @returns {string} - HTML markup for the API selection view
+     */
     renderMain(props) {
         return (
             <div className='test-configuration-view'>
@@ -152,6 +181,10 @@ class SpecificationSelectView extends React.Component {
         );
     }
 
+    /**
+     *
+     * @returns {string} - HTML markup for the SpecificationSelectView
+     */
     render() {
         return (
             <div>
