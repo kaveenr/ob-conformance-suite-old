@@ -18,9 +18,10 @@
 
 import React from 'react';
 import axios from 'axios';
-import {connect} from "react-redux";
-import RequestBuilder from "../utils/RequestBuilder";
-import { addSpecification, addTestPlan, clearTestPlan } from '../actions';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import RequestBuilder from '../utils/RequestBuilder';
+import { addSpecification, addTestPlan } from '../actions';
 
 const client = new RequestBuilder();
 
@@ -36,11 +37,13 @@ class CommonDataLoader extends React.Component {
         axios.all([client.getSpecifications(), client.getTestPlans()]).then(
             axios.spread((specs, plans) => {
                 specs.data.forEach((spec) => {
-                    this.props.dispatch(addSpecification(spec.name, spec));
+                    const { dispatch } = this.props;
+                    dispatch(addSpecification(spec.name, spec));
                 });
                 const testplans = plans.data;
-                Object.keys(testplans).forEach(key => this.props.dispatch(addTestPlan(key, testplans[key].testPlan, testplans[key].reports))
-                );
+                const { dispatch } = this.props;
+                Object.keys(testplans).forEach(key => dispatch(addTestPlan(key,
+                    testplans[key].testPlan, testplans[key].reports)));
             }),
         ).finally(() => {
             this.setState({
@@ -58,5 +61,9 @@ class CommonDataLoader extends React.Component {
         }
     }
 }
+
+CommonDataLoader.propTypes = {
+    dispatch: PropTypes.func.isRequired,
+};
 
 export default connect()(CommonDataLoader);

@@ -21,6 +21,7 @@ import { connect } from 'react-redux';
 import {
     ListGroup, ListGroupItem, Panel, Row, Table,
 } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 import TestPlanReduxHelper from '../utils/TestPlanReduxHelper';
 import { toggleVector, toggleFeature } from '../actions';
 import AttributeGroup from './AttributeGroup';
@@ -75,7 +76,8 @@ export const Feature = connect(state => ({ testvalues: state.testvalues }))(({
                                             </tr>
                                         </thead>
                                         <tbody className='text-center'>
-                                            {feature.scenarios.map(scenario => <ScenariodataRow key={scenario.scenarioName} scenario={scenario} />)}
+                                            {feature.scenarios.map(scenario =>
+                                                <ScenariodataRow key={scenario.scenarioName} scenario={scenario} />)}
                                         </tbody>
                                     </Table>
                                 </Panel.Body>
@@ -119,7 +121,6 @@ export const Vector = connect(state => ({ testvalues: state.testvalues }))(({
     </ListGroupItem>
 ));
 
-
 export const Specification = ({ spec, selectElement, selected }) => (
     <ListGroupItem key='root-spec' onClick={() => { selectElement(spec.name); }} active={selected}>
         <h4>
@@ -130,6 +131,17 @@ export const Specification = ({ spec, selectElement, selected }) => (
         <p>{spec.description}</p>
     </ListGroupItem>
 );
+
+Specification.propTypes = {
+    spec: PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        title: PropTypes.string.isRequired,
+        version: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
+    }).isRequired,
+    selectElement: PropTypes.func.isRequired,
+    selected: PropTypes.bool.isRequired,
+};
 
 export const SpecificationEditor = ({ spec }) => (
     <div className='test-configuration-view'>
@@ -142,7 +154,8 @@ export const SpecificationEditor = ({ spec }) => (
         <Panel>
             <Panel.Heading>Global Configuration</Panel.Heading>
             <Panel.Body id='attributeGroups'>
-                {spec.attributeGroups.map(group => <AttributeGroup scope='specification' specName={spec.name} group={group} key={group.groupName} />)}
+                {spec.attributeGroups.map(group =>
+                    <AttributeGroup scope='specification' specName={spec.name} group={group} key={group.groupName} />)}
             </Panel.Body>
         </Panel>
         <br />
@@ -151,3 +164,12 @@ export const SpecificationEditor = ({ spec }) => (
         {spec.features.map(feature => <Feature key={feature.uri.path} feature={feature} specName={spec.name} />)}
     </div>
 );
+
+SpecificationEditor.propTypes = {
+    spec: PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        testingVectors: PropTypes.array.isRequired,
+        attributeGroups: PropTypes.array.isRequired,
+        features: PropTypes.array.isRequired,
+    }).isRequired,
+};
